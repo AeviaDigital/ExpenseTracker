@@ -1,0 +1,696 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>ExpenseTrack — Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+<div class="app">
+
+<!-- ══════════════════════════════════════════════════════════════
+     DESKTOP SIDEBAR
+══════════════════════════════════════════════════════════════════ -->
+<aside class="sidebar desktop-only">
+  <div class="logo">
+    <div class="logo-text">ExpenseTrack</div>
+    <div class="logo-sub"><span class="sync-dot" id="sidebarDot"></span><span id="sidebarSyncLabel">Not connected</span></div>
+  </div>
+  <nav>
+    <div class="nav-item active" onclick="showPage('dashboard')">
+      <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1" y="1" width="6" height="6" rx="1"/><rect x="9" y="1" width="6" height="6" rx="1"/><rect x="1" y="9" width="6" height="6" rx="1"/><rect x="9" y="9" width="6" height="6" rx="1"/></svg>Dashboard
+    </div>
+    <div class="nav-item" onclick="showPage('add')">
+      <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="7"/><line x1="8" y1="5" x2="8" y2="11"/><line x1="5" y1="8" x2="11" y2="8"/></svg>Add Expense
+    </div>
+    <div class="nav-item" onclick="showPage('expenses')">
+      <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 4h12M2 8h8M2 12h5"/></svg>All Expenses
+    </div>
+    <div class="nav-item" onclick="showPage('analytics')">
+      <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="1,11 5,6 9,8 15,2"/><line x1="1" y1="15" x2="15" y2="15"/></svg>Analytics
+    </div>
+    <div class="nav-item" onclick="showPage('import')">
+      <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 1v9M5 7l3 3 3-3"/><path d="M2 11v2a1 1 0 001 1h10a1 1 0 001-1v-2"/></svg>Import CSV
+    </div>
+    <div class="nav-item" onclick="showPage('settings')">
+      <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="2.5"/><path d="M8 1v2M8 13v2M1 8h2M13 8h2M3.05 3.05l1.41 1.41M11.54 11.54l1.41 1.41M3.05 12.95l1.41-1.41M11.54 4.46l1.41-1.41"/></svg>Settings & Sync
+    </div>
+  </nav>
+  <div class="sidebar-footer">
+    <button class="btn btn-sm btn-full btn-primary" onclick="syncNow()" id="syncBtn">Sync Now</button>
+    <button class="btn btn-sm btn-full" onclick="exportCSV()">Export CSV</button>
+  </div>
+</aside>
+
+<!-- ══════════════════════════════════════════════════════════════
+     DESKTOP MAIN CONTENT
+══════════════════════════════════════════════════════════════════ -->
+<main class="main desktop-only">
+<div class="page-content">
+
+  <!-- DASHBOARD -->
+  <div id="page-dashboard" class="page active">
+    <div class="page-header">
+      <div class="page-title">Dashboard</div>
+      <div class="page-sub" id="dash-period">Loading…</div>
+    </div>
+    <div class="stats-grid">
+      <div class="stat-card"><div class="stat-label">This Month (Paid)</div><div class="stat-value green" id="stat-month">£0.00</div><div class="stat-delta" id="stat-month-count">0 expenses</div></div>
+      <div class="stat-card"><div class="stat-label">This Year (Paid)</div><div class="stat-value" id="stat-year">£0.00</div><div class="stat-delta" id="stat-year-count">0 expenses</div></div>
+      <div class="stat-card savings"><div class="stat-label">Saved This Month</div><div class="stat-value" id="stat-saved">£0.00</div><div class="stat-delta">Actual − Paid</div></div>
+      <div class="stat-card"><div class="stat-label">Daily Average</div><div class="stat-value" id="stat-avg">£0.00</div><div class="stat-delta">Paid Price · this month</div></div>
+    </div>
+    <div class="charts-grid">
+      <div class="card"><div class="chart-title">Spend by Overall Category</div><div class="chart-wrap" style="height:220px"><canvas id="catChart"></canvas></div></div>
+      <div class="card"><div class="chart-title">Monthly Trend (Paid Price)</div><div class="chart-wrap" style="height:220px"><canvas id="trendChart"></canvas></div></div>
+    </div>
+    <div class="card">
+      <div class="flex items-center justify-between mb-16">
+        <div class="section-title" style="margin-bottom:0">Recent Expenses</div>
+        <button class="btn btn-sm btn-primary" onclick="showPage('add')">+ Add New</button>
+      </div>
+      <div class="table-wrap">
+        <table><thead><tr><th>Date</th><th>Outlet</th><th>Overall Category</th><th>Paid</th><th>Actual</th><th>Saving</th></tr></thead>
+        <tbody id="recent-tbody"><tr><td colspan="6"><div class="empty-state"><div class="empty-icon">📋</div><div class="empty-title">No expenses yet</div><div class="empty-sub">Add your first expense or import your CSV</div></div></td></tr></tbody></table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ADD EXPENSE -->
+  <div id="page-add" class="page">
+    <div class="page-header"><div class="page-title">Add Expense</div><div class="page-sub">Scan a receipt or enter details manually</div></div>
+    <div class="card mb-20">
+      <div class="section-title">Scan Receipt (AI Extraction)</div>
+      <div class="upload-zone" id="uploadZone" onclick="document.getElementById('fileInput').click()" ondragover="handleDrag(event)" ondragleave="handleDragLeave(event)" ondrop="handleDrop(event)">
+        <div style="font-size:28px;margin-bottom:8px">📷</div>
+        <div style="font-size:14px;color:var(--text2)">Click to upload, drag & drop, or take a photo</div>
+        <div style="font-size:12px;color:var(--text3);margin-top:4px">JPG · PNG · PDF · HEIC — AI extracts all fields with confidence indicators</div>
+      </div>
+      <input type="file" id="fileInput" accept="image/*,application/pdf" capture="environment" onchange="handleFileSelect(event)">
+      <img id="receiptPreview" alt="Receipt preview" style="max-width:100%;max-height:200px;border-radius:8px;object-fit:contain;display:none;margin:12px auto 0">
+      <div class="ocr-status" id="ocrStatus">
+        <div class="spinner" style="border-color:rgba(0,0,0,0.1);border-top-color:var(--accent-mid)"></div>
+        <div class="ocr-skeleton"></div>
+        <span style="white-space:nowrap;color:var(--text3)">Analysing with AI…</span>
+      </div>
+      <!-- Improved scan result with inline editing -->
+      <div class="scan-result" id="scanResult">
+        <div class="scan-result-header">
+          <div class="scan-result-title">
+            ✓ AI extracted — edit any field below before applying
+          </div>
+          <div class="scan-result-actions">
+            <button class="btn btn-sm" onclick="rescan()">Re-scan</button>
+          </div>
+        </div>
+        <div class="scan-fields-grid" id="scanFieldsGrid"></div>
+        <div class="scan-footer">
+          <div class="scan-footer-note">
+            <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#2d9e70;margin-right:4px"></span>High
+            <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#f59e0b;margin:0 4px 0 8px"></span>Medium
+            <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#e05a4a;margin:0 4px 0 8px"></span>Low confidence
+          </div>
+          <button class="btn btn-sm btn-primary" onclick="applyScanned()">Apply to Form ↓</button>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="section-title">Expense Details</div>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Outlet</label>
+          <div class="outlet-wrap">
+            <input type="text" id="f-outlet" placeholder="Type to search or add new…" autocomplete="off" oninput="filterOutlets(this.value)" onfocus="openOutletDropdown()" onblur="closeOutletDropdown()">
+            <div class="outlet-dropdown" id="outletDropdown"></div>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Date</label>
+          <input type="date" id="f-date">
+        </div>
+        <div class="form-group">
+          <label>Paid Price (£)</label>
+          <input type="number" id="f-paid" placeholder="0.00" step="0.01" min="0">
+        </div>
+        <div class="form-group">
+          <div class="label-row">
+            <label>Actual Price (£)</label>
+            <i class="info-tip" data-tip="The original price before any discount, loyalty points or promotion. If no discount, leave the same as Paid Price.">i</i>
+          </div>
+          <input type="number" id="f-actual" placeholder="0.00" step="0.01" min="0">
+        </div>
+        <div class="form-group">
+          <label>Overall Category</label>
+          <select id="f-overall-cat">
+            <option>Food & Dining</option><option>Travel & Transport</option><option>Office/Work</option>
+            <option>Shopping</option><option>Utilities & Bills</option><option>Other</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Category (sub-level)</label>
+          <input type="text" id="f-category" placeholder="e.g. Fruits, Transport, Rent…">
+        </div>
+        <div class="form-group">
+          <label>Item</label>
+          <input type="text" id="f-item" placeholder="e.g. Grapes, Bus Ticket, Electricity Bill…">
+        </div>
+        <div class="form-group">
+          <label>Transaction Type</label>
+          <select id="f-payment"><option>Card</option><option>Cash</option><option>Direct Debit</option><option>Bank Transfer</option></select>
+        </div>
+      </div>
+      <div class="flex gap-10 mt-20">
+        <button class="btn btn-primary" onclick="submitExpense()">Save Expense</button>
+        <button class="btn" onclick="clearForm()">Clear</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ALL EXPENSES -->
+  <div id="page-expenses" class="page">
+    <div class="page-header"><div class="page-title">All Expenses</div></div>
+    <div class="action-bar">
+      <div class="filters">
+        <select class="filter-select" id="filter-month" onchange="renderExpenses()"><option value="">All Months</option></select>
+        <select class="filter-select" id="filter-overall-cat" onchange="renderExpenses()">
+          <option value="">All Overall Categories</option>
+          <option>Food & Dining</option><option>Travel & Transport</option><option>Office/Work</option>
+          <option>Shopping</option><option>Utilities & Bills</option><option>Other</option>
+        </select>
+        <select class="filter-select" id="filter-cat" onchange="renderExpenses()"><option value="">All Categories</option></select>
+        <select class="filter-select" id="filter-outlet" onchange="renderExpenses()"><option value="">All Outlets</option></select>
+      </div>
+      <div style="font-size:13px;color:var(--text3)" id="filtered-total"></div>
+    </div>
+    <div class="card">
+      <div class="table-wrap">
+        <table><thead><tr><th>Date</th><th>Outlet</th><th>Overall Cat.</th><th>Category</th><th>Item</th><th>Paid</th><th>Actual</th><th>Saving</th><th>Type</th><th></th></tr></thead>
+        <tbody id="expenses-tbody"><tr><td colspan="10"><div class="empty-state"><div class="empty-icon">📋</div><div class="empty-title">No expenses yet</div><div class="empty-sub">Add your first expense or import your CSV to get started</div><button class="btn btn-primary" onclick="showPage('add')">Add Expense</button></div></td></tr></tbody></table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ANALYTICS -->
+  <div id="page-analytics" class="page">
+    <div class="page-header"><div class="page-title">Analytics & Trends</div></div>
+    <div class="tabs">
+      <div class="tab active" onclick="setAnalyticsPeriod('month',this)">This Month</div>
+      <div class="tab" onclick="setAnalyticsPeriod('quarter',this)">Quarter</div>
+      <div class="tab" onclick="setAnalyticsPeriod('year',this)">Year</div>
+      <div class="tab" onclick="setAnalyticsPeriod('all',this)">All Time</div>
+    </div>
+    <div class="insights-grid" id="insights-grid"></div>
+    <div class="charts-grid mb-20">
+      <div class="card"><div class="chart-title">By Overall Category</div><div class="chart-wrap" style="height:240px"><canvas id="anOvCatChart"></canvas></div></div>
+      <div class="card"><div class="chart-title">By Category (sub-level)</div><div class="chart-wrap" style="height:240px"><canvas id="anSubCatChart"></canvas></div></div>
+    </div>
+    <div class="card mb-20"><div class="chart-title">Paid Price vs Actual Price — by Overall Category</div><div class="chart-wrap" style="height:240px"><canvas id="paidVsActualChart"></canvas></div></div>
+    <div class="charts-grid mb-20">
+      <div class="card"><div class="chart-title">Day of Week Spend</div><div class="chart-wrap" style="height:220px"><canvas id="dowChart"></canvas></div></div>
+      <div class="card"><div class="chart-title">Cumulative Paid Price</div><div class="chart-wrap" style="height:220px"><canvas id="cumulChart"></canvas></div></div>
+    </div>
+    <div class="card"><div class="chart-title">Top Outlets (Paid Price)</div><div class="chart-wrap" style="height:260px"><canvas id="outletChart"></canvas></div></div>
+  </div>
+
+  <!-- IMPORT CSV -->
+  <div id="page-import" class="page">
+    <div class="page-header"><div class="page-title">Import CSV</div><div class="page-sub">Upload your Day Wise CSV — all 9 columns auto-mapped</div></div>
+    <div class="card mb-20" id="import-step1">
+      <div class="import-step-header">
+        <div class="import-step-num">1</div>
+        <div><div style="font-weight:500;font-size:15px">Upload your CSV</div><div style="font-size:13px;color:var(--text2);margin-top:2px">In Excel: right-click the <strong>Day Wise</strong> tab → Save As → CSV</div></div>
+      </div>
+      <div class="upload-zone" id="csvUploadZone" onclick="document.getElementById('csvFileInput').click()" ondragover="handleCsvDrag(event)" ondragleave="handleCsvDragLeave(event)" ondrop="handleCsvDrop(event)">
+        <div style="font-size:26px;margin-bottom:8px">📂</div>
+        <div style="font-size:14px;color:var(--text2)">Click to upload or drag & drop your CSV</div>
+        <div style="font-size:12px;color:var(--text3);margin-top:4px">Auto-maps: Date · Month · Day · Item · Category · Overall Category · Outlet · Paid Price · Actual Price</div>
+      </div>
+      <input type="file" id="csvFileInput" accept=".csv,text/csv" onchange="handleCsvSelect(event)">
+      <div id="csvParseStatus" style="display:none;margin-top:12px;font-size:13px;color:var(--text2)"></div>
+    </div>
+    <div class="card mb-20" id="import-step2" style="display:none">
+      <div class="import-step-header">
+        <div class="import-step-num">2</div>
+        <div><div style="font-weight:500;font-size:15px">Confirm column mapping</div><div style="font-size:13px;color:var(--text2);margin-top:2px">Auto-matched from your 9 headers — adjust if needed</div></div>
+      </div>
+      <div class="import-map-grid" id="importMapGrid"></div>
+      <div style="margin-top:12px;padding:10px 14px;background:var(--surface2);border-radius:var(--radius-sm);font-size:13px;color:var(--text2)" id="importPreviewRow"></div>
+      <div class="flex gap-10 mt-16">
+        <button class="btn btn-primary" onclick="runImport()">Preview Import</button>
+        <button class="btn" onclick="resetImport()">Start Over</button>
+      </div>
+    </div>
+    <div class="card mb-20" id="import-step3" style="display:none">
+      <div class="import-step-header">
+        <div class="import-step-num">3</div>
+        <div><div style="font-weight:500;font-size:15px">Review & confirm</div><div style="font-size:13px;color:var(--text2);margin-top:2px" id="import-preview-sub">0 rows ready</div></div>
+      </div>
+      <div id="import-errors-box"></div>
+      <div class="table-wrap mt-16">
+        <table><thead><tr><th>Date</th><th>Month</th><th>Day</th><th>Outlet</th><th>Overall Cat.</th><th>Category</th><th>Item</th><th>Paid £</th><th>Actual £</th><th>Status</th></tr></thead>
+        <tbody id="import-preview-tbody"></tbody></table>
+      </div>
+      <div class="flex gap-10 mt-20">
+        <button class="btn btn-primary" id="confirmImportBtn" onclick="confirmImport()">Import All to Supabase</button>
+        <button class="btn btn-danger" onclick="resetImport()">Cancel</button>
+      </div>
+      <div id="import-progress" style="display:none;margin-top:14px">
+        <div style="font-size:13px;color:var(--text2);margin-bottom:6px" id="import-progress-label">Importing…</div>
+        <div class="progress-bar-wrap"><div class="progress-bar-fill" id="import-progress-bar" style="width:0%"></div></div>
+      </div>
+    </div>
+    <div class="card" id="import-step4" style="display:none">
+      <div style="text-align:center;padding:32px 20px">
+        <div style="font-size:36px;margin-bottom:12px">✅</div>
+        <div style="font-size:18px;font-weight:600;letter-spacing:-0.3px" id="import-done-title">Import complete!</div>
+        <div style="font-size:14px;color:var(--text2);margin-top:8px" id="import-done-sub"></div>
+        <div class="flex gap-10 mt-20" style="justify-content:center">
+          <button class="btn btn-primary" onclick="showPage('dashboard')">Go to Dashboard</button>
+          <button class="btn" onclick="resetImport()">Import Another File</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SETTINGS -->
+  <div id="page-settings" class="page">
+    <div class="page-header"><div class="page-title">Settings & Sync</div><div class="page-sub">Supabase connection and data management</div></div>
+    <div class="setup-panel" id="setupPanel">
+      <div class="setup-title">Set up Supabase — free, ~10 minutes</div>
+      <div class="setup-step"><div class="step-num">1</div><div class="step-text">Go to <a href="https://supabase.com" target="_blank">supabase.com</a> → create free account → <strong>New Project</strong></div></div>
+      <div class="setup-step"><div class="step-num">2</div><div class="step-text">In <strong>SQL Editor</strong>, run the query below</div></div>
+      <div class="sql-block">CREATE TABLE expenses (
+  id            BIGSERIAL PRIMARY KEY,
+  date          DATE NOT NULL,
+  month         TEXT, day TEXT,
+  item          TEXT DEFAULT '',
+  category      TEXT DEFAULT '',
+  overall_cat   TEXT NOT NULL,
+  outlet        TEXT NOT NULL,
+  paid_price    NUMERIC(10,2) NOT NULL,
+  actual_price  NUMERIC(10,2),
+  payment       TEXT DEFAULT 'Card',
+  created_at    TIMESTAMPTZ DEFAULT NOW()
+);
+ALTER TABLE expenses ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Allow all" ON expenses FOR ALL TO anon, authenticated USING (true) WITH CHECK (true);
+GRANT ALL ON expenses TO anon;
+GRANT USAGE ON SEQUENCE expenses_id_seq TO anon;
+
+CREATE TABLE outlets (id BIGSERIAL PRIMARY KEY, name TEXT UNIQUE NOT NULL);
+ALTER TABLE outlets ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Allow all" ON outlets FOR ALL TO anon, authenticated USING (true) WITH CHECK (true);
+GRANT ALL ON outlets TO anon;
+GRANT USAGE ON SEQUENCE outlets_id_seq TO anon;</div>
+      <div class="setup-step" style="margin-top:12px"><div class="step-num">3</div><div class="step-text">Go to <strong>Project Settings → API</strong> → copy Project URL and anon key below</div></div>
+      <div class="creds-grid">
+        <div class="form-group"><label>Supabase Project URL</label><input type="text" id="sb-url" placeholder="https://xxxxxxxxxxxx.supabase.co" oninput="saveCreds()"></div>
+        <div class="form-group"><label>Supabase Anon Key</label><input type="password" id="sb-key" placeholder="eyJhbGci…" oninput="saveCreds()"></div>
+      </div>
+      <div class="flex gap-10 mt-16">
+        <button class="btn btn-info" onclick="testConnection()">Test Connection</button>
+        <button class="btn" onclick="document.getElementById('setupPanel').style.display='none'">Hide</button>
+      </div>
+    </div>
+    <div class="card mb-20">
+      <div class="section-title">Sync Status</div>
+      <div class="flex items-center gap-10 mb-16">
+        <span class="sync-dot" id="settingsDot"></span>
+        <span id="settingsSyncLabel" style="font-size:14px">Not connected</span>
+        <span id="connectedBadge" style="display:none" class="connected-badge">Connected</span>
+      </div>
+      <div style="font-size:13px;color:var(--text2);line-height:1.7">Data is always saved locally first — the app works offline. When connected, expenses sync to Supabase on every save.</div>
+      <div class="flex gap-10 mt-16">
+        <button class="btn btn-primary" onclick="syncNow()">Sync Now</button>
+        <button class="btn" onclick="exportCSV()">Export CSV</button>
+        <button class="btn btn-danger" onclick="clearLocalData()">Clear Local Cache</button>
+      </div>
+      <div style="font-size:12px;color:var(--text3);margin-top:10px" id="lastSyncLabel"></div>
+    </div>
+    <div class="card mb-20">
+      <div class="section-title">Your Account</div>
+      <div style="display:flex;align-items:center;gap:12px;padding:12px;background:var(--surface2);border-radius:var(--radius-sm);margin-bottom:16px">
+        <div id="userAvatar" style="width:36px;height:36px;border-radius:50%;background:var(--accent);color:white;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:600;flex-shrink:0">U</div>
+        <div><div id="userEmail" style="font-size:14px;font-weight:500">Loading…</div><div style="font-size:12px;color:var(--text3);margin-top:2px">Signed in</div></div>
+      </div>
+      <button class="btn btn-sm btn-danger" onclick="signOut()">Sign Out</button>
+    </div>
+    <div class="card">
+      <div class="section-title">Deployment</div>
+      <div style="font-size:14px;color:var(--text2);line-height:1.8">
+        <strong>GitHub Pages:</strong> Push the folder to your repo → Settings → Pages → main branch<br>
+        <strong>Android:</strong> Open your URL in Chrome → three dots → Add to Home Screen
+      </div>
+    </div>
+  </div>
+
+</div><!-- /page-content -->
+</main><!-- /main desktop -->
+
+<!-- ══════════════════════════════════════════════════════════════
+     MOBILE SWIPE LAYOUT
+══════════════════════════════════════════════════════════════════ -->
+<div class="mobile-swipe-wrapper" id="mobileSwipeWrapper">
+
+  <!-- Page indicator + label -->
+  <div class="mobile-page-indicator">
+    <div class="indicator-dot active" onclick="goToMobilePage(0)"></div>
+    <div class="indicator-dot" onclick="goToMobilePage(1)"></div>
+    <div class="indicator-dot" onclick="goToMobilePage(2)"></div>
+    <div class="indicator-dot" onclick="goToMobilePage(3)"></div>
+    <div class="indicator-dot" onclick="goToMobilePage(4)"></div>
+    <span class="mobile-page-label" id="mobilePageLabel">Dashboard</span>
+  </div>
+
+  <!-- Mobile header -->
+  <div class="mobile-header">
+    <div class="mobile-header-title" id="mobileHeaderTitle">Dashboard</div>
+    <div class="mobile-header-sync">
+      <span class="sync-dot" id="mobileSyncDot"></span>
+      <span id="mobileSyncLabel">Not connected</span>
+    </div>
+  </div>
+
+  <!-- Swipeable pages track -->
+  <div class="mobile-pages" id="mobilePagesTrack">
+
+    <!-- M1: DASHBOARD -->
+    <div class="mobile-page">
+      <div style="font-size:12px;color:var(--text3);margin-bottom:12px" id="m-dash-period">Loading…</div>
+      <div class="stats-grid" style="margin-bottom:16px">
+        <div class="stat-card"><div class="stat-label">This Month</div><div class="stat-value green" id="m-stat-month">£0.00</div><div class="stat-delta" id="m-stat-month-count">0 expenses</div></div>
+        <div class="stat-card"><div class="stat-label">This Year</div><div class="stat-value" id="m-stat-year">£0.00</div><div class="stat-delta" id="m-stat-year-count">0 expenses</div></div>
+        <div class="stat-card savings"><div class="stat-label">Saved</div><div class="stat-value" id="m-stat-saved">£0.00</div><div class="stat-delta">this month</div></div>
+        <div class="stat-card"><div class="stat-label">Daily Avg</div><div class="stat-value" id="m-stat-avg">£0.00</div><div class="stat-delta">Paid</div></div>
+      </div>
+      <div class="card mb-20"><div class="chart-title">By Category</div><div class="chart-wrap" style="height:200px"><canvas id="mCatChart"></canvas></div></div>
+      <div class="card mb-20"><div class="chart-title">Monthly Trend</div><div class="chart-wrap" style="height:180px"><canvas id="mTrendChart"></canvas></div></div>
+      <div class="card">
+        <div class="section-title">Recent</div>
+        <div class="table-wrap">
+          <table><thead><tr><th>Date</th><th>Outlet</th><th>Paid</th></tr></thead>
+          <tbody id="m-recent-tbody"></tbody></table>
+        </div>
+        <button class="btn btn-primary btn-full" style="margin-top:12px" onclick="goToMobilePage(1)">+ Add Expense</button>
+      </div>
+    </div>
+
+    <!-- M2: ADD EXPENSE -->
+    <div class="mobile-page">
+      <div class="card mb-20">
+        <div class="section-title">Scan Receipt</div>
+        <div class="upload-zone" onclick="document.getElementById('fileInput').click()" ondragover="handleDrag(event)" ondragleave="handleDragLeave(event)" ondrop="handleDrop(event)">
+          <div style="font-size:24px;margin-bottom:6px">📷</div>
+          <div style="font-size:13px;color:var(--text2)">Tap to take a photo or upload</div>
+          <div style="font-size:11px;color:var(--text3);margin-top:3px">AI extracts all fields automatically</div>
+        </div>
+        <div class="ocr-status" id="m-ocrStatus" style="display:none">
+          <div class="spinner" style="border-color:rgba(0,0,0,0.1);border-top-color:var(--accent-mid)"></div>
+          <span style="font-size:13px;color:var(--text3)">Analysing receipt…</span>
+        </div>
+        <div class="scan-result" id="m-scanResult" style="display:none">
+          <div class="scan-result-header">
+            <div class="scan-result-title" style="font-size:12px">✓ Extracted — edit below</div>
+            <button class="btn btn-sm" onclick="rescan()" style="font-size:11px;padding:4px 8px">Re-scan</button>
+          </div>
+          <div class="scan-fields-grid" id="m-scanFieldsGrid"></div>
+          <div class="scan-footer">
+            <div class="scan-footer-note" style="font-size:10px">
+              <span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:#2d9e70;margin-right:3px"></span>High
+              <span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:#f59e0b;margin:0 3px 0 6px"></span>Med
+              <span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:#e05a4a;margin:0 3px 0 6px"></span>Low
+            </div>
+            <button class="btn btn-sm btn-primary" onclick="applyScanned()" style="font-size:12px">Apply ↓</button>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="section-title">Details</div>
+        <div style="display:flex;flex-direction:column;gap:12px">
+          <div class="form-group">
+            <label>Outlet</label>
+            <div class="outlet-wrap">
+              <input type="text" id="f-outlet" placeholder="Search or add outlet…" autocomplete="off" oninput="filterOutlets(this.value)" onfocus="openOutletDropdown()" onblur="closeOutletDropdown()">
+              <div class="outlet-dropdown" id="outletDropdown"></div>
+            </div>
+          </div>
+          <div class="form-group"><label>Date</label><input type="date" id="f-date"></div>
+          <div class="form-group"><label>Paid Price (£)</label><input type="number" id="f-paid" placeholder="0.00" step="0.01" min="0"></div>
+          <div class="form-group">
+            <div class="label-row">
+              <label>Actual Price (£)</label>
+              <i class="info-tip" data-tip="Original price before discount. Same as Paid if no discount.">i</i>
+            </div>
+            <input type="number" id="f-actual" placeholder="0.00" step="0.01" min="0">
+          </div>
+          <div class="form-group">
+            <label>Overall Category</label>
+            <select id="f-overall-cat">
+              <option>Food & Dining</option><option>Travel & Transport</option><option>Office/Work</option>
+              <option>Shopping</option><option>Utilities & Bills</option><option>Other</option>
+            </select>
+          </div>
+          <div class="form-group"><label>Category</label><input type="text" id="f-category" placeholder="e.g. Fruits, Transport…"></div>
+          <div class="form-group"><label>Item</label><input type="text" id="f-item" placeholder="e.g. Grapes, Bus Ticket…"></div>
+          <div class="form-group">
+            <label>Payment Type</label>
+            <select id="f-payment"><option>Card</option><option>Cash</option><option>Direct Debit</option><option>Bank Transfer</option></select>
+          </div>
+        </div>
+        <div class="flex gap-10 mt-20">
+          <button class="btn btn-primary" style="flex:1" onclick="submitExpense()">Save Expense</button>
+          <button class="btn" onclick="clearForm()">Clear</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- M3: ANALYTICS -->
+    <div class="mobile-page">
+      <div class="tabs" style="overflow-x:auto;white-space:nowrap;width:100%">
+        <div class="tab active" onclick="setAnalyticsPeriod('month',this)">Month</div>
+        <div class="tab" onclick="setAnalyticsPeriod('quarter',this)">Quarter</div>
+        <div class="tab" onclick="setAnalyticsPeriod('year',this)">Year</div>
+        <div class="tab" onclick="setAnalyticsPeriod('all',this)">All</div>
+      </div>
+      <div class="insights-grid" id="m-insights-grid" style="margin-bottom:16px"></div>
+      <div class="card mb-20"><div class="chart-title">By Overall Category</div><div class="chart-wrap" style="height:220px"><canvas id="m-anOvCatChart"></canvas></div></div>
+      <div class="card mb-20"><div class="chart-title">By Category</div><div class="chart-wrap" style="height:220px"><canvas id="m-anSubCatChart"></canvas></div></div>
+      <div class="card mb-20"><div class="chart-title">Paid vs Actual</div><div class="chart-wrap" style="height:200px"><canvas id="m-paidVsActualChart"></canvas></div></div>
+      <div class="card mb-20"><div class="chart-title">Day of Week</div><div class="chart-wrap" style="height:180px"><canvas id="m-dowChart"></canvas></div></div>
+      <div class="card mb-20"><div class="chart-title">Cumulative Spend</div><div class="chart-wrap" style="height:180px"><canvas id="m-cumulChart"></canvas></div></div>
+      <div class="card"><div class="chart-title">Top Outlets</div><div class="chart-wrap" style="height:240px"><canvas id="m-outletChart"></canvas></div></div>
+    </div>
+
+    <!-- M4: ALL EXPENSES -->
+    <div class="mobile-page">
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px">
+        <select class="filter-select" id="m-filter-month" onchange="renderMobileExpenses()" style="font-size:12px;padding:6px 8px"><option value="">All Months</option></select>
+        <select class="filter-select" id="m-filter-overall-cat" onchange="renderMobileExpenses()" style="font-size:12px;padding:6px 8px">
+          <option value="">All Categories</option>
+          <option>Food & Dining</option><option>Travel & Transport</option><option>Office/Work</option>
+          <option>Shopping</option><option>Utilities & Bills</option><option>Other</option>
+        </select>
+      </div>
+      <div style="font-size:12px;color:var(--text3);margin-bottom:10px" id="m-filtered-total"></div>
+      <div id="m-expenses-list"></div>
+    </div>
+
+    <!-- M5: SETTINGS -->
+    <div class="mobile-page">
+      <div class="card mb-20">
+        <div class="section-title">Supabase Sync</div>
+        <div class="flex items-center gap-10" style="margin-bottom:14px">
+          <span class="sync-dot" id="m-settingsDot"></span>
+          <span id="m-settingsSyncLabel" style="font-size:14px">Not connected</span>
+        </div>
+        <div class="form-group mb-16"><label>Project URL</label><input type="text" id="m-sb-url" placeholder="https://xxxxxxxxxxxx.supabase.co" oninput="syncMobileCreds()"></div>
+        <div class="form-group mb-16"><label>Anon Key</label><input type="password" id="m-sb-key" placeholder="eyJhbGci…" oninput="syncMobileCreds()"></div>
+        <div class="flex gap-10">
+          <button class="btn btn-info" style="flex:1" onclick="testConnectionMobile()">Test Connection</button>
+          <button class="btn btn-primary" onclick="syncNow()">Sync Now</button>
+        </div>
+        <div style="font-size:12px;color:var(--text3);margin-top:10px" id="m-lastSyncLabel"></div>
+      </div>
+      <div class="card mb-20">
+        <div class="section-title">Data</div>
+        <div class="flex gap-10" style="flex-wrap:wrap">
+          <button class="btn btn-sm" onclick="exportCSV()">Export CSV</button>
+          <button class="btn btn-sm btn-danger" onclick="clearLocalData()">Clear Cache</button>
+        </div>
+      </div>
+      <div class="card">
+        <div class="section-title">Import CSV</div>
+        <div style="font-size:13px;color:var(--text2);margin-bottom:12px">Import your Day Wise sheet on desktop for best results</div>
+        <button class="btn btn-full" onclick="document.getElementById('csvFileInput').click()">Upload CSV on Mobile</button>
+        <input type="file" id="csvFileInput" accept=".csv,text/csv" onchange="handleCsvSelect(event)" style="display:none">
+      </div>
+    </div>
+
+  </div><!-- /mobile-pages -->
+</div><!-- /mobile-swipe-wrapper -->
+
+</div><!-- /app -->
+<div class="toast" id="toast"></div>
+
+<script type="module" src="js/auth.js"></script>
+<script src="js/data.js"></script>
+<script src="js/dashboard.js"></script>
+<script src="js/expenses.js"></script>
+<script src="js/analytics.js"></script>
+<script src="js/add-expense.js"></script>
+<script src="js/import.js"></script>
+<script src="js/app.js"></script>
+<script>
+// ── MOBILE-SPECIFIC HELPERS ──────────────────────────────────────
+function syncMobileCreds() {
+  const u = document.getElementById('m-sb-url')?.value.trim();
+  const k = document.getElementById('m-sb-key')?.value.trim();
+  const du = document.getElementById('sb-url'); if (du && u) du.value = u;
+  const dk = document.getElementById('sb-key'); if (dk && k) dk.value = k;
+  saveCreds();
+}
+async function testConnectionMobile() {
+  const u = document.getElementById('m-sb-url')?.value.trim();
+  const k = document.getElementById('m-sb-key')?.value.trim();
+  if (u) { const d = document.getElementById('sb-url'); if(d) d.value = u; }
+  if (k) { const d = document.getElementById('sb-key'); if(d) d.value = k; }
+  await testConnection();
+  const ml = document.getElementById('m-lastSyncLabel');
+  const sl = document.getElementById('lastSyncLabel');
+  if (ml && sl) ml.textContent = sl.textContent;
+}
+
+function renderMobileExpenses() {
+  const mF  = document.getElementById('m-filter-month')?.value || '';
+  const ocF = document.getElementById('m-filter-overall-cat')?.value || '';
+  const filtered = expenses
+    .filter(e => (!mF || e.date.startsWith(mF)) && (!ocF || e.overall_cat === ocF))
+    .sort((a,b) => b.date.localeCompare(a.date));
+  const totEl = document.getElementById('m-filtered-total');
+  if (totEl) totEl.textContent = `${filtered.length} expenses · ${fmt(filtered.reduce((s,e)=>s+e.paid,0))}`;
+  const list = document.getElementById('m-expenses-list');
+  if (!list) return;
+  if (filtered.length === 0) {
+    list.innerHTML = `<div class="empty-state"><div class="empty-icon">📋</div><div class="empty-title">No expenses</div><div class="empty-sub">Add expenses or adjust filters</div></div>`;
+    return;
+  }
+  list.innerHTML = filtered.map(e => `
+    <div class="card" style="margin-bottom:10px;padding:14px 16px">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start">
+        <div>
+          <div style="font-weight:500;font-size:14px">${e.outlet}</div>
+          <div style="font-size:11px;color:var(--text3);margin-top:2px">${fmtDate(e.date)} · ${e.day||''}</div>
+          <div style="margin-top:6px;display:flex;gap:6px;flex-wrap:wrap">${catBadge(e.overall_cat)}${e.category?`<span class="sub-cat-badge">${e.category}</span>`:''}</div>
+        </div>
+        <div style="text-align:right">
+          <div class="mono" style="font-size:15px">${fmt(e.paid)}</div>
+          <div style="font-size:11px;color:var(--text2);margin-top:2px">Actual ${fmt(e.actual)}</div>
+          <div style="margin-top:4px">${savingBadge(e.paid,e.actual)}</div>
+          <button class="btn btn-sm btn-danger" style="margin-top:6px;padding:3px 8px" onclick="deleteMobileExpense(${e.id})">×</button>
+        </div>
+      </div>
+    </div>`).join('');
+}
+
+async function deleteMobileExpense(id) {
+  expenses = expenses.filter(e => e.id !== id);
+  saveLocal();
+  renderMobileExpenses();
+  toast('Expense deleted');
+  await deleteFromSupabase(id);
+}
+
+// Populate mobile month filter
+function populateMobileFilters() {
+  const months = [...new Set(expenses.map(e => e.date.slice(0,7)))].sort().reverse();
+  const sel = document.getElementById('m-filter-month');
+  if (sel) {
+    sel.innerHTML = '<option value="">All Months</option>' + months.map(m => {
+      const d = new Date(m+'-01');
+      return `<option value="${m}">${d.toLocaleDateString('en-GB',{month:'short',year:'numeric'})}</option>`;
+    }).join('');
+  }
+}
+
+// Mobile analytics (re-uses same chart IDs with m- prefix)
+let mAnOvCI, mAnSubCI, mPvaCI, mDowCI, mCumCI, mOutCI;
+function renderMobileAnalytics() {
+  const data = getByPeriod();
+  const tPaid = data.reduce((s,e)=>s+e.paid,0);
+  const tActual = data.reduce((s,e)=>s+(e.actual||e.paid),0);
+  const days = [...new Set(data.map(e=>e.date))].length;
+  const ig = document.getElementById('m-insights-grid');
+  if (ig) ig.innerHTML = `
+    <div class="insight-card"><div class="insight-title">Total Paid</div><div class="insight-value" style="font-size:16px">${fmt(tPaid)}</div><div class="insight-sub">${data.length} tx</div></div>
+    <div class="insight-card"><div class="insight-title">Saved</div><div class="insight-value" style="font-size:16px;color:var(--warning)">${fmt(tActual-tPaid)}</div><div class="insight-sub">Actual−Paid</div></div>
+    <div class="insight-card"><div class="insight-title">Daily Avg</div><div class="insight-value" style="font-size:16px">${fmt(days?tPaid/days:0)}</div><div class="insight-sub">${days} days</div></div>
+    <div class="insight-card"><div class="insight-title">Actual</div><div class="insight-value" style="font-size:16px">${fmt(tActual)}</div><div class="insight-sub">original</div></div>`;
+
+  const pal = ['#2d9e70','#3b82f6','#8b5cf6','#ec4899','#f59e0b','#6b7280'];
+  const makeChart = (id, ciRef, type, data, opts) => {
+    const c = document.getElementById(id); if (!c) return;
+    if (ciRef.val) ciRef.val.destroy();
+    ciRef.val = new Chart(c, { type, data, options: { responsive:true, maintainAspectRatio:false, ...opts } });
+  };
+
+  const ovT = {}; data.forEach(e=>{ovT[e.overall_cat]=(ovT[e.overall_cat]||0)+e.paid;});
+  const ovL = Object.keys(ovT).sort((a,b)=>ovT[b]-ovT[a]);
+  if (mAnOvCI) mAnOvCI.destroy();
+  const oc = document.getElementById('m-anOvCatChart');
+  if (oc) mAnOvCI = new Chart(oc,{type:'pie',data:{labels:ovL,datasets:[{data:ovL.map(k=>ovT[k]),backgroundColor:pal,borderWidth:0}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{boxWidth:8,font:{size:10},color:'#888'}}}}});
+
+  const subT={}; data.forEach(e=>{if(e.category)subT[e.category]=(subT[e.category]||0)+e.paid;});
+  const subL=Object.keys(subT).sort((a,b)=>subT[b]-subT[a]).slice(0,8);
+  if (mAnSubCI) mAnSubCI.destroy();
+  const sc=document.getElementById('m-anSubCatChart');
+  if(sc) mAnSubCI=new Chart(sc,{type:'bar',indexAxis:'y',data:{labels:subL,datasets:[{data:subL.map(k=>subT[k]),backgroundColor:'#3b82f640',borderColor:'#3b82f6',borderWidth:1.5,borderRadius:3}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{callback:v=>'£'+v,color:'#888',font:{size:10}}},y:{ticks:{color:'#888',font:{size:10}}}}}});
+
+  const pvaL=OVERALL_CATS.filter(c=>data.some(e=>e.overall_cat===c));
+  const pvP=pvaL.map(c=>+data.filter(e=>e.overall_cat===c).reduce((s,e)=>s+e.paid,0).toFixed(2));
+  const pvA=pvaL.map(c=>+data.filter(e=>e.overall_cat===c).reduce((s,e)=>s+(e.actual||e.paid),0).toFixed(2));
+  if(mPvaCI)mPvaCI.destroy();
+  const pc=document.getElementById('m-paidVsActualChart');
+  if(pc)mPvaCI=new Chart(pc,{type:'bar',data:{labels:pvaL,datasets:[{label:'Paid',data:pvP,backgroundColor:'#2d9e7060',borderColor:'#2d9e70',borderWidth:1.5,borderRadius:3},{label:'Actual',data:pvA,backgroundColor:'#f59e0b40',borderColor:'#f59e0b',borderWidth:1.5,borderRadius:3}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{boxWidth:8,font:{size:10},color:'#888'}}},scales:{y:{ticks:{callback:v=>'£'+v,color:'#888',font:{size:10}}},x:{ticks:{color:'#888',font:{size:10}}}}}});
+
+  const dow=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'],dowT=new Array(7).fill(0);
+  data.forEach(e=>{const d=new Date(e.date+'T00:00:00');dowT[(d.getDay()+6)%7]+=e.paid;});
+  if(mDowCI)mDowCI.destroy();
+  const dc=document.getElementById('m-dowChart');
+  if(dc)mDowCI=new Chart(dc,{type:'bar',data:{labels:dow,datasets:[{data:dowT,backgroundColor:dowT.map((_,i)=>i>=5?'#ec489960':'#3b82f660'),borderColor:dowT.map((_,i)=>i>=5?'#ec4899':'#3b82f6'),borderWidth:1.5,borderRadius:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{ticks:{callback:v=>'£'+v,color:'#888',font:{size:10}}},x:{ticks:{color:'#888',font:{size:10}}}}}});
+
+  const sorted=[...data].sort((a,b)=>a.date.localeCompare(b.date));
+  let cum=0;const cD=[],cV=[];sorted.forEach(e=>{cum+=e.paid;cD.push(fmtDate(e.date));cV.push(+cum.toFixed(2));});
+  if(mCumCI)mCumCI.destroy();
+  const cc=document.getElementById('m-cumulChart');
+  if(cc)mCumCI=new Chart(cc,{type:'line',data:{labels:cD,datasets:[{data:cV,borderColor:'#2d9e70',backgroundColor:'#2d9e7020',fill:true,tension:0.3,pointRadius:1}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{ticks:{callback:v=>'£'+v,color:'#888',font:{size:10}}},x:{ticks:{maxTicksLimit:5,color:'#888',font:{size:10}}}}}});
+
+  const oT=Object.entries(data.reduce((a,e)=>{a[e.outlet]=(a[e.outlet]||0)+e.paid;return a;},{})).sort((a,b)=>b[1]-a[1]).slice(0,8);
+  if(mOutCI)mOutCI.destroy();
+  const oc2=document.getElementById('m-outletChart');
+  if(oc2){const oH=Math.max(oT.length*32+50,180);oc2.parentElement.style.height=oH+'px';mOutCI=new Chart(oc2,{type:'bar',indexAxis:'y',data:{labels:oT.map(m=>m[0]),datasets:[{data:oT.map(m=>m[1]),backgroundColor:'#8b5cf640',borderColor:'#8b5cf6',borderWidth:1.5,borderRadius:3}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},schools:{x:{ticks:{callback:v=>'£'+v,color:'#888',font:{size:10}}},y:{ticks:{color:'#888',font:{size:10}}}}}});}
+}
+
+// Override renderCurrentPage to handle mobile pages too
+const _origRenderCurrentPage = renderCurrentPage;
+window.renderCurrentPage = function() {
+  _origRenderCurrentPage();
+  if (window.innerWidth <= 768) {
+    const page = MOBILE_PAGES[mobileIndex];
+    if (page === 'dashboard') renderMobileDashboard();
+    else if (page === 'analytics') renderMobileAnalytics();
+    else if (page === 'expenses') { renderMobileExpenses(); populateMobileFilters(); }
+    else if (page === 'settings') {
+      loadCreds();
+      const mu = document.getElementById('m-sb-url'), mk = document.getElementById('m-sb-key');
+      if (mu) mu.value = sbUrl; if (mk) mk.value = sbKey;
+      const ml = document.getElementById('m-lastSyncLabel'), sl = document.getElementById('lastSyncLabel');
+      if (ml && sl) ml.textContent = sl.textContent;
+    }
+  }
+};
+</script>
+</body>
+</html>
