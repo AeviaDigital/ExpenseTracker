@@ -202,6 +202,12 @@ input:focus{border-color:var(--accent-mid)}
   </div>
 </div>
 
+<script>
+function continueAsGuest() {
+  localStorage.setItem('et_guest_mode', 'true');
+  window.location.href = 'app.html';
+}
+</script>
 <script type="module">
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
@@ -308,12 +314,6 @@ window.forgotPassword = async function() {
 };
 
 // ── HELPERS ───────────────────────────────────────────────────────
-window.continueAsGuest = function() {
-  localStorage.setItem('et_guest_mode', 'true');
-  localStorage.removeItem('et_setup_complete_guest');
-  window.location.href = 'app.html';
-};
-
 function showError(panel, msg) {
   const el = document.getElementById(panel + '-error');
   el.textContent = msg; el.classList.add('show');
