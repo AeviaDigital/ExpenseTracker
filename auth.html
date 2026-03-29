@@ -189,6 +189,15 @@ input:focus{border-color:var(--accent-mid)}
           <span style="font-size:13px;color:var(--text3)">Already have an account? <a href="#" onclick="switchTab('signin')">Sign In</a></span>
         </div>
       </div>
+
+      <!-- Guest mode -->
+      <div style="margin-top:24px;padding-top:24px;border-top:1px solid var(--border);text-align:center">
+        <div style="font-size:13px;color:var(--text3);margin-bottom:12px">Just want to explore first?</div>
+        <button onclick="continueAsGuest()" style="width:100%;padding:11px;background:transparent;border:1px solid var(--border);border-radius:8px;font-size:14px;font-weight:500;cursor:pointer;font-family:inherit;color:var(--text2);transition:all 0.15s" onmouseover="this.style.background='var(--bg)'" onmouseout="this.style.background='transparent'">
+          Continue as Guest →
+        </button>
+        <div style="font-size:12px;color:var(--text3);margin-top:8px">No account needed · Data saved locally · Sync available later</div>
+      </div>
     </div>
   </div>
 </div>
@@ -299,6 +308,12 @@ window.forgotPassword = async function() {
 };
 
 // ── HELPERS ───────────────────────────────────────────────────────
+window.continueAsGuest = function() {
+  localStorage.setItem('et_guest_mode', 'true');
+  localStorage.removeItem('et_setup_complete_guest');
+  window.location.href = 'app.html';
+};
+
 function showError(panel, msg) {
   const el = document.getElementById(panel + '-error');
   el.textContent = msg; el.classList.add('show');

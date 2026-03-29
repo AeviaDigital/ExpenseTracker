@@ -9,6 +9,18 @@
 <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
+<!-- Guest mode banner -->
+<div id="guestBanner" style="display:none;align-items:center;justify-content:space-between;gap:12px;padding:10px 24px;background:#1a6b4a;color:white;font-size:13px;flex-wrap:wrap;position:sticky;top:0;z-index:200">
+  <div style="display:flex;align-items:center;gap:8px">
+    <span style="font-size:14px">👋</span>
+    <span>You're in <strong>Guest Mode</strong> — data is saved locally only. Sign in to sync across devices.</span>
+  </div>
+  <div style="display:flex;gap:8px;flex-shrink:0">
+    <button onclick="window.location.href='auth.html?mode=register'" style="padding:6px 14px;background:white;color:#1a6b4a;border:none;border-radius:6px;font-size:13px;font-weight:500;cursor:pointer;font-family:inherit">Create Account</button>
+    <button onclick="exitGuestMode()" style="padding:6px 14px;background:rgba(255,255,255,0.15);color:white;border:1px solid rgba(255,255,255,0.3);border-radius:6px;font-size:13px;cursor:pointer;font-family:inherit">Sign In</button>
+  </div>
+</div>
+
 <div class="app">
 
 <!-- ══════════════════════════════════════════════════════════════

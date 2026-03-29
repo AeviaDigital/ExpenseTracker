@@ -10,6 +10,14 @@ let dataClient    = null; // user's own Supabase
 
 // ── INIT AUTH ─────────────────────────────────────────────────────
 async function initAuth() {
+  // ── GUEST MODE BYPASS ───────────────────────────────────────────
+  const isGuest = localStorage.getItem('et_guest_mode') === 'true';
+  if (isGuest) {
+    currentUser = { id: 'guest', email: 'Guest' };
+    showGuestBanner();
+    return true;
+  }
+
   // Dynamically import Supabase
   const { createClient } = await import('https://esm.sh/@supabase/supabase-js@2');
 
@@ -54,15 +62,37 @@ async function initAuth() {
   return true;
 }
 
+function showGuestBanner() {
+  const banner = document.getElementById('guestBanner');
+  if (banner) banner.style.display = 'flex';
+}
+
+function exitGuestMode() {
+  localStorage.removeItem('et_guest_mode');
+  window.location.href = 'auth.html';
+}
+
 function updateUserUI() {
   if (!currentUser) return;
-  const email  = currentUser.email || '';
-  const initials = email ? email.slice(0,2).toUpperCase() : 'U';
-  // Update avatar in settings
+  const isGuest = currentUser.id === 'guest';
+  const email    = isGuest ? 'Guest Mode' : (currentUser.email || '');
+  const initials = isGuest ? '?' : (email ? email.slice(0,2).toUpperCase() : 'U');
   const avatarEl = document.getElementById('userAvatar');
-  if (avatarEl) avatarEl.textContent = initials;
+  if (avatarEl) { avatarEl.textContent = initials; if (isGuest) avatarEl.style.background = '#888'; }
   const emailEl = document.getElementById('userEmail');
   if (emailEl) emailEl.textContent = email;
+  const subEl = document.getElementById('userSub');
+  if (subEl) subEl.textContent = isGuest ? 'Local only — sign in to sync' : 'Signed in';
+  // Show/hide sign out vs sign up button
+  const signOutBtn = document.getElementById('signOutBtn');
+  const signUpBtn  = document.getElementById('signUpBtn');
+  if (isGuest) {
+    if (signOutBtn) signOutBtn.style.display = 'none';
+    if (signUpBtn)  signUpBtn.style.display  = 'inline-block';
+  } else {
+    if (signOutBtn) signOutBtn.style.display = 'inline-block';
+    if (signUpBtn)  signUpBtn.style.display  = 'none';
+  }
 }
 
 async function signOut() {
@@ -84,11 +114,12 @@ function saveUserCreds() {
 
 // ── OVERRIDE saveCreds TO USE USER-SCOPED STORAGE ─────────────────
 function saveCreds() {
+  if (currentUser?.id === 'guest') return;
   saveUserCreds();
 }
 
 function loadCreds() {
-  if (currentUser) {
+  if (currentUser && currentUser.id !== 'guest') {
     sbUrl = localStorage.getItem('et_sb_url_' + currentUser.id) || '';
     sbKey = localStorage.getItem('et_sb_key_' + currentUser.id) || '';
   }
