@@ -14,6 +14,9 @@ async function initAuth() {
   const isGuest = localStorage.getItem('et_guest_mode') === 'true';
   if (isGuest) {
     currentUser = { id: 'guest', email: 'Guest' };
+    // Load any previously saved guest credentials
+    sbUrl = localStorage.getItem('et_sb_url_guest') || '';
+    sbKey = localStorage.getItem('et_sb_key_guest') || '';
     showGuestBanner();
     return true;
   }
@@ -114,15 +117,18 @@ function saveUserCreds() {
 
 // ── OVERRIDE saveCreds TO USE USER-SCOPED STORAGE ─────────────────
 function saveCreds() {
-  if (currentUser?.id === 'guest') return;
-  saveUserCreds();
+  // Allow guests to save credentials too — stored under 'guest' key
+  const uid = currentUser?.id || 'guest';
+  sbUrl = document.getElementById('sb-url')?.value.trim() || '';
+  sbKey = document.getElementById('sb-key')?.value.trim() || '';
+  localStorage.setItem('et_sb_url_' + uid, sbUrl);
+  localStorage.setItem('et_sb_key_' + uid, sbKey);
 }
 
 function loadCreds() {
-  if (currentUser && currentUser.id !== 'guest') {
-    sbUrl = localStorage.getItem('et_sb_url_' + currentUser.id) || '';
-    sbKey = localStorage.getItem('et_sb_key_' + currentUser.id) || '';
-  }
+  const uid = currentUser?.id || 'guest';
+  sbUrl = localStorage.getItem('et_sb_url_' + uid) || '';
+  sbKey = localStorage.getItem('et_sb_key_' + uid) || '';
   const u = document.getElementById('sb-url'), k = document.getElementById('sb-key');
   if (u) u.value = sbUrl; if (k) k.value = sbKey;
 }
