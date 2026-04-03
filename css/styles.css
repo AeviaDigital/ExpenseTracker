@@ -328,3 +328,11 @@ textarea{resize:vertical;min-height:70px}
 @media(max-width:768px){
   .desktop-only{display:none!important}
 }
+
+/* ── LOGO IMAGE DARK MODE ────────────────────────────────────────── */
+/* In dark mode, invert the sidebar logo so it shows on dark surface */
+@media(prefers-color-scheme:dark){
+  .logo-img img {
+    filter: brightness(0) invert(1);
+  }
+}

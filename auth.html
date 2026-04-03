@@ -1,104 +1,101 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Sign In — ExpenseTrack</title>
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
-<style>
-:root{
-  --accent:#1a6b4a;--accent-light:#e8f5ee;--accent-mid:#2d9e70;
-  --text:#1a1a18;--text2:#6b6b67;--text3:#9d9d98;
-  --surface:#ffffff;--bg:#f8f7f4;--border:rgba(0,0,0,0.09);
-  --danger:#c0392b;--danger-light:#fdf0ee;
-  --radius:12px;--radius-sm:8px;
-}
-@media(prefers-color-scheme:dark){
-  :root{
-    --bg:#111110;--surface:#1c1c1a;--text:#f0efeb;--text2:#a0a09c;--text3:#6b6b67;
-    --border:rgba(255,255,255,0.08);--accent-light:#0d2b1e;--accent:#2fd98a;--accent-mid:#25a96a;
-    --danger:#e05a4a;--danger-light:#2a1210;
-  }
-}
-*{box-sizing:border-box;margin:0;padding:0}
-body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column}
-.auth-wrap{flex:1;display:grid;grid-template-columns:1fr 1fr;min-height:100vh}
-.auth-left{background:var(--accent);padding:48px;display:flex;flex-direction:column;justify-content:space-between;position:relative;overflow:hidden}
-.auth-left-bg{position:absolute;inset:0;opacity:0.06}
-.auth-left-bg svg{width:100%;height:100%}
-.auth-brand{position:relative;z-index:1}
-.auth-brand-logo{font-size:22px;font-weight:600;color:white;letter-spacing:-0.3px;text-decoration:none;display:inline-block}
-.auth-brand-tagline{font-size:14px;color:rgba(255,255,255,0.65);margin-top:6px}
-.auth-features{position:relative;z-index:1}
-.auth-feature{display:flex;align-items:flex-start;gap:14px;margin-bottom:24px}
-.auth-feature-icon{width:36px;height:36px;border-radius:8px;background:rgba(255,255,255,0.15);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
-.auth-feature-text{color:rgba(255,255,255,0.85);font-size:14px;line-height:1.5}
-.auth-feature-title{color:white;font-weight:500;margin-bottom:2px;font-size:14px}
-.auth-left-note{position:relative;z-index:1;font-size:12px;color:rgba(255,255,255,0.45)}
-
-.auth-right{background:var(--surface);display:flex;align-items:center;justify-content:center;padding:48px}
-.auth-box{width:100%;max-width:420px}
-.auth-back{display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--text3);text-decoration:none;margin-bottom:32px;transition:color 0.15s}
-.auth-back:hover{color:var(--text)}
-.auth-title{font-size:26px;font-weight:600;letter-spacing:-0.5px;margin-bottom:6px}
-.auth-sub{font-size:14px;color:var(--text2);margin-bottom:32px}
-
-/* Tabs */
-.auth-tabs{display:flex;background:var(--bg);border-radius:var(--radius-sm);padding:3px;gap:2px;margin-bottom:28px}
-.auth-tab{flex:1;padding:8px;border-radius:6px;font-size:14px;font-weight:500;cursor:pointer;text-align:center;color:var(--text2);transition:all 0.15s;border:none;background:transparent;font-family:inherit}
-.auth-tab.active{background:var(--surface);color:var(--text);box-shadow:0 1px 3px rgba(0,0,0,0.08)}
-
-/* Social buttons */
-.social-btns{display:flex;flex-direction:column;gap:10px;margin-bottom:24px}
-.social-btn{display:flex;align-items:center;gap:12px;padding:12px 16px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--surface);cursor:pointer;font-family:inherit;font-size:14px;font-weight:500;color:var(--text);transition:all 0.15s;width:100%;text-align:left}
-.social-btn:hover{background:var(--bg);border-color:rgba(0,0,0,0.18)}
-.social-icon{width:20px;height:20px;flex-shrink:0}
-.social-btn-text{flex:1}
-
-/* Divider */
-.divider{display:flex;align-items:center;gap:14px;margin-bottom:24px}
-.divider-line{flex:1;height:1px;background:var(--border)}
-.divider-text{font-size:13px;color:var(--text3)}
-
-/* Form */
-.form-group{display:flex;flex-direction:column;gap:6px;margin-bottom:16px}
-label{font-size:13px;font-weight:500;color:var(--text2)}
-input{padding:11px 14px;background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text);font-family:inherit;font-size:14px;outline:none;width:100%;transition:border 0.15s}
-input:focus{border-color:var(--accent-mid)}
-.btn-auth{width:100%;padding:12px;background:var(--accent);color:white;border:none;border-radius:var(--radius-sm);font-size:15px;font-weight:500;cursor:pointer;font-family:inherit;transition:all 0.15s;margin-top:4px}
-.btn-auth:hover{opacity:0.88}
-.btn-auth:disabled{opacity:0.5;cursor:not-allowed}
-.form-footer{display:flex;justify-content:space-between;align-items:center;margin-top:20px}
-.form-footer a{font-size:13px;color:var(--accent);text-decoration:none}
-.form-footer a:hover{text-decoration:underline}
-
-/* Messages */
-.auth-error{background:var(--danger-light);color:var(--danger);border:1px solid var(--danger);border-radius:var(--radius-sm);padding:10px 14px;font-size:13px;margin-bottom:16px;display:none}
-.auth-error.show{display:block}
-.auth-success{background:var(--accent-light);color:var(--accent);border:1px solid var(--accent-mid);border-radius:var(--radius-sm);padding:10px 14px;font-size:13px;margin-bottom:16px;display:none}
-.auth-success.show{display:block}
-
-/* Loading */
-.spinner{display:inline-block;width:14px;height:14px;border:2px solid rgba(255,255,255,0.3);border-top-color:white;border-radius:50%;animation:spin 0.7s linear infinite;vertical-align:middle;margin-right:6px}
-@keyframes spin{to{transform:rotate(360deg)}}
-
-@media(max-width:768px){
-  .auth-wrap{grid-template-columns:1fr}
-  .auth-left{display:none}
-  .auth-right{padding:32px 24px}
-}
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sign In — ExpenseTrack</title>
+  <link rel="icon" type="image/svg+xml" href="colored-logo.svg">
+  <link rel="icon" type="image/png" href="colored-logo.png">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --accent:#1a6b4a;--accent-light:#e8f5ee;--accent-mid:#2d9e70;
+      --text:#1a1a18;--text2:#6b6b67;--text3:#9d9d98;
+      --surface:#ffffff;--bg:#f8f7f4;--border:rgba(0,0,0,0.09);
+      --danger:#c0392b;--danger-light:#fdf0ee;
+      --radius:12px;--radius-sm:8px;
+    }
+    @media(prefers-color-scheme:dark){
+      :root{
+        --bg:#111110;--surface:#1c1c1a;--text:#f0efeb;--text2:#a0a09c;--text3:#6b6b67;
+        --border:rgba(255,255,255,0.08);--accent-light:#0d2b1e;--accent:#2fd98a;--accent-mid:#25a96a;
+        --danger:#e05a4a;--danger-light:#2a1210;
+      }
+    }
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column}
+    .auth-wrap{flex:1;display:grid;grid-template-columns:1fr 1fr;min-height:100vh}
+    .auth-left{background:var(--accent);padding:48px;display:flex;flex-direction:column;justify-content:space-between;position:relative;overflow:hidden}
+    .auth-left-bg{position:absolute;inset:0;opacity:0.06}
+    .auth-left-bg svg{width:100%;height:100%}
+    .auth-brand{position:relative;z-index:1}
+    .auth-brand-logo{display:inline-block;margin-bottom:10px}
+    .auth-brand-logo img{height:60px;width:auto;filter:brightness(0) invert(1)}
+    .auth-brand-tagline{font-size:14px;color:rgba(255,255,255,0.65);margin-top:4px}
+    .auth-features{position:relative;z-index:1}
+    .auth-feature{display:flex;align-items:flex-start;gap:14px;margin-bottom:24px}
+    .auth-feature-icon{width:36px;height:36px;border-radius:8px;background:rgba(255,255,255,0.15);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
+    .auth-feature-text{color:rgba(255,255,255,0.85);font-size:14px;line-height:1.5}
+    .auth-feature-title{color:white;font-weight:500;margin-bottom:2px;font-size:14px}
+    .auth-left-note{position:relative;z-index:1;font-size:12px;color:rgba(255,255,255,0.45)}
+    .auth-right{background:var(--surface);display:flex;align-items:center;justify-content:center;padding:48px}
+    .auth-box{width:100%;max-width:420px}
+    .auth-back{display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--text3);text-decoration:none;margin-bottom:32px;transition:color 0.15s}
+    .auth-back:hover{color:var(--text)}
+    .auth-title{font-size:26px;font-weight:600;letter-spacing:-0.5px;margin-bottom:6px}
+    .auth-sub{font-size:14px;color:var(--text2);margin-bottom:32px}
+    /* Tabs */
+    .auth-tabs{display:flex;background:var(--bg);border-radius:var(--radius-sm);padding:3px;gap:2px;margin-bottom:28px}
+    .auth-tab{flex:1;padding:8px;border-radius:6px;font-size:14px;font-weight:500;cursor:pointer;text-align:center;color:var(--text2);transition:all 0.15s;border:none;background:transparent;font-family:inherit}
+    .auth-tab.active{background:var(--surface);color:var(--text);box-shadow:0 1px 3px rgba(0,0,0,0.08)}
+    /* Social buttons */
+    .social-btns{display:flex;flex-direction:column;gap:10px;margin-bottom:24px}
+    .social-btn{display:flex;align-items:center;gap:12px;padding:12px 16px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--surface);cursor:pointer;font-family:inherit;font-size:14px;font-weight:500;color:var(--text);transition:all 0.15s;width:100%;text-align:left}
+    .social-btn:hover{background:var(--bg);border-color:rgba(0,0,0,0.18)}
+    .social-icon{width:20px;height:20px;flex-shrink:0}
+    .social-btn-text{flex:1}
+    /* Divider */
+    .divider{display:flex;align-items:center;gap:14px;margin-bottom:24px}
+    .divider-line{flex:1;height:1px;background:var(--border)}
+    .divider-text{font-size:13px;color:var(--text3)}
+    /* Form */
+    .form-group{display:flex;flex-direction:column;gap:6px;margin-bottom:16px}
+    label{font-size:13px;font-weight:500;color:var(--text2)}
+    input{padding:11px 14px;background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text);font-family:inherit;font-size:14px;outline:none;width:100%;transition:border 0.15s}
+    input:focus{border-color:var(--accent-mid)}
+    .btn-auth{width:100%;padding:12px;background:var(--accent);color:white;border:none;border-radius:var(--radius-sm);font-size:15px;font-weight:500;cursor:pointer;font-family:inherit;transition:all 0.15s;margin-top:4px}
+    .btn-auth:hover{opacity:0.88}
+    .btn-auth:disabled{opacity:0.5;cursor:not-allowed}
+    .form-footer{display:flex;justify-content:space-between;align-items:center;margin-top:20px}
+    .form-footer a{font-size:13px;color:var(--accent);text-decoration:none}
+    .form-footer a:hover{text-decoration:underline}
+    /* Messages */
+    .auth-error{background:var(--danger-light);color:var(--danger);border:1px solid var(--danger);border-radius:var(--radius-sm);padding:10px 14px;font-size:13px;margin-bottom:16px;display:none}
+    .auth-error.show{display:block}
+    .auth-success{background:var(--accent-light);color:var(--accent);border:1px solid var(--accent-mid);border-radius:var(--radius-sm);padding:10px 14px;font-size:13px;margin-bottom:16px;display:none}
+    .auth-success.show{display:block}
+    /* Loading */
+    .spinner{display:inline-block;width:14px;height:14px;border:2px solid rgba(255,255,255,0.3);border-top-color:white;border-radius:50%;animation:spin 0.7s linear infinite;vertical-align:middle;margin-right:6px}
+    @keyframes spin{to{transform:rotate(360deg)}}
+    @media(max-width:768px){
+      .auth-wrap{grid-template-columns:1fr}
+      .auth-left{display:none}
+      .auth-right{padding:32px 24px}
+    }
+  </style>
 </head>
 <body>
-
 <div class="auth-wrap">
+
   <!-- Left panel -->
   <div class="auth-left">
     <div class="auth-left-bg">
       <svg viewBox="0 0 400 600" fill="none"><circle cx="200" cy="100" r="200" fill="white"/><circle cx="50" cy="400" r="150" fill="white"/><circle cx="350" cy="500" r="100" fill="white"/></svg>
     </div>
     <div class="auth-brand">
-      <a href="index.html" class="auth-brand-logo">ExpenseTrack</a>
+      <a href="index.html" class="auth-brand-logo">
+        <img src="transparent-logo.svg" alt="Expense Tracker">
+      </a>
       <div class="auth-brand-tagline">Smart expense tracking · Your data, your control</div>
     </div>
     <div class="auth-features">
@@ -198,6 +195,7 @@ input:focus{border-color:var(--accent-mid)}
         </button>
         <div style="font-size:12px;color:var(--text3);margin-top:8px">No account needed · Data saved locally · Sync available later</div>
       </div>
+
     </div>
   </div>
 </div>
@@ -208,112 +206,83 @@ function continueAsGuest() {
   window.location.href = 'app.html';
 }
 </script>
+
 <script type="module">
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
-// ── YOUR AUTH SUPABASE (handles login only) ───────────────────────
-// Replace these with YOUR Supabase project credentials
-const AUTH_SUPABASE_URL = 'YOUR_AUTH_SUPABASE_URL';
+const AUTH_SUPABASE_URL      = 'YOUR_AUTH_SUPABASE_URL';
 const AUTH_SUPABASE_ANON_KEY = 'YOUR_AUTH_SUPABASE_ANON_KEY';
-
 const supabase = createClient(AUTH_SUPABASE_URL, AUTH_SUPABASE_ANON_KEY);
 window._authSupabase = supabase;
 
-// ── CHECK IF ALREADY LOGGED IN ────────────────────────────────────
 const { data: { session } } = await supabase.auth.getSession();
-if (session) {
-  redirectAfterLogin(session.user);
-}
+if (session) { redirectAfterLogin(session.user); }
 
-// ── HANDLE OAUTH CALLBACK ─────────────────────────────────────────
 supabase.auth.onAuthStateChange(async (event, session) => {
-  if (event === 'SIGNED_IN' && session) {
-    redirectAfterLogin(session.user);
-  }
+  if (event === 'SIGNED_IN' && session) { redirectAfterLogin(session.user); }
 });
 
 function redirectAfterLogin(user) {
   const userSetup = localStorage.getItem('et_setup_complete_' + user.id);
-  if (userSetup) {
-    window.location.href = 'app.html';
-  } else {
-    window.location.href = 'setup.html';
-  }
+  if (userSetup) { window.location.href = 'app.html'; }
+  else { window.location.href = 'setup.html'; }
 }
 
-// ── TAB SWITCHING ─────────────────────────────────────────────────
 window.switchTab = function(tab) {
   document.getElementById('tab-signin').classList.toggle('active', tab === 'signin');
   document.getElementById('tab-register').classList.toggle('active', tab === 'register');
-  document.getElementById('panel-signin').style.display = tab === 'signin' ? 'block' : 'none';
+  document.getElementById('panel-signin').style.display  = tab === 'signin'   ? 'block' : 'none';
   document.getElementById('panel-register').style.display = tab === 'register' ? 'block' : 'none';
 };
 
-// Check URL param for mode
 const params = new URLSearchParams(window.location.search);
 if (params.get('mode') === 'register') window.switchTab('register');
 
-// ── SOCIAL LOGIN ──────────────────────────────────────────────────
 window.signInWithGoogle = async function() {
-  const { error } = await supabase.auth.signInWithOAuth({
-    provider: 'google',
-    options: { redirectTo: window.location.origin + '/ExpenseTracker/auth.html' }
-  });
+  const { error } = await supabase.auth.signInWithOAuth({ provider:'google', options:{ redirectTo: window.location.origin + '/ExpenseTracker/auth.html' } });
   if (error) showError('signin', error.message);
 };
-
 window.signInWithMicrosoft = async function() {
-  const { error } = await supabase.auth.signInWithOAuth({
-    provider: 'azure',
-    options: { redirectTo: window.location.origin + '/ExpenseTracker/auth.html' }
-  });
+  const { error } = await supabase.auth.signInWithOAuth({ provider:'azure', options:{ redirectTo: window.location.origin + '/ExpenseTracker/auth.html' } });
   if (error) showError('signin', error.message);
 };
-
 window.signInWithApple = async function() {
-  const { error } = await supabase.auth.signInWithOAuth({
-    provider: 'apple',
-    options: { redirectTo: window.location.origin + '/ExpenseTracker/auth.html' }
-  });
+  const { error } = await supabase.auth.signInWithOAuth({ provider:'apple', options:{ redirectTo: window.location.origin + '/ExpenseTracker/auth.html' } });
   if (error) showError('signin', error.message);
 };
 
-// ── EMAIL SIGN IN ─────────────────────────────────────────────────
 window.signInWithEmail = async function() {
   const email    = document.getElementById('signin-email').value.trim();
   const password = document.getElementById('signin-password').value;
-  if (!email || !password) { showError('signin', 'Please enter your email and password'); return; }
+  if (!email || !password) { showError('signin','Please enter your email and password'); return; }
   setLoading('signin-btn', true);
   const { error } = await supabase.auth.signInWithPassword({ email, password });
   setLoading('signin-btn', false);
   if (error) showError('signin', error.message);
 };
 
-// ── EMAIL REGISTER ────────────────────────────────────────────────
 window.registerWithEmail = async function() {
   const email    = document.getElementById('register-email').value.trim();
   const password = document.getElementById('register-password').value;
   const confirm  = document.getElementById('register-confirm').value;
-  if (!email || !password) { showError('register', 'Please fill in all fields'); return; }
-  if (password.length < 8)  { showError('register', 'Password must be at least 8 characters'); return; }
-  if (password !== confirm)  { showError('register', 'Passwords do not match'); return; }
+  if (!email || !password) { showError('register','Please fill in all fields'); return; }
+  if (password.length < 8) { showError('register','Password must be at least 8 characters'); return; }
+  if (password !== confirm) { showError('register','Passwords do not match'); return; }
   setLoading('register-btn', true);
-  const { error } = await supabase.auth.signUp({ email, password, options: { emailRedirectTo: window.location.origin + '/ExpenseTracker/auth.html' } });
+  const { error } = await supabase.auth.signUp({ email, password, options:{ emailRedirectTo: window.location.origin + '/ExpenseTracker/auth.html' } });
   setLoading('register-btn', false);
   if (error) showError('register', error.message);
-  else showSuccess('register', 'Check your email to confirm your account, then sign in.');
+  else showSuccess('register','Check your email to confirm your account, then sign in.');
 };
 
-// ── FORGOT PASSWORD ───────────────────────────────────────────────
 window.forgotPassword = async function() {
   const email = document.getElementById('signin-email').value.trim();
-  if (!email) { showError('signin', 'Enter your email address above first'); return; }
+  if (!email) { showError('signin','Enter your email address above first'); return; }
   const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo: window.location.origin + '/ExpenseTracker/auth.html?mode=reset' });
   if (error) showError('signin', error.message);
-  else showSuccess('signin', 'Password reset link sent — check your email');
+  else showSuccess('signin','Password reset link sent — check your email');
 };
 
-// ── HELPERS ───────────────────────────────────────────────────────
 function showError(panel, msg) {
   const el = document.getElementById(panel + '-error');
   el.textContent = msg; el.classList.add('show');
